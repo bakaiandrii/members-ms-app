@@ -8,7 +8,8 @@ const membersRouter = Router();
 membersRouter.post('/', member.checkUserValiditiMiddleware, memberController.createMember);
 membersRouter.get('/id/:id', memberController.getMemberInfo);
 membersRouter.get('/search', memberController.searchMember);
-membersRouter.delete('/:id', memberController.deleteMember);
+membersRouter.get('/search/name', memberController.searchMemberName);
+membersRouter.delete('/:id', auth.checkAccessTokenMiddleware, memberController.deleteMember);
 
 
 module.exports = membersRouter;

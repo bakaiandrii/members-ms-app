@@ -52,6 +52,10 @@ module.exports = {
         body: {
           // _source: ['*'],
           query: {
+            multi_match: {
+              query: search,
+              fields: ['*_name']
+            },
             bool: {
               should: [
                 { match: { country } },
@@ -61,10 +65,39 @@ module.exports = {
               ],
               // minimum_should_match : 1,
             },
-            // multi_match: {
-            //   query: search,
-            //   fields: ['*_name']
-            // }
+
+          },
+          sort: [
+            { "createdAt": { "order": createdAt } }],
+        },
+      });
+      await connecMongooseService.connectionDB();
+      const countryCodes = await userService.getCountryCode('countryCode');
+      if(body.hits.hits){
+        for (const el of body.hits.hits) {
+          const countryCode = el._source.country;
+          el._source.country = countryCodes.find(el => el.code === countryCode).name;
+        }
+      }
+      res.json(body);
+
+    } catch (err) {
+      if (err) res.status(404).json(err.message);
+    }
+  },
+  searchMemberName: async (req, res) => {
+    const { search, country, gender, ageGte, ageLte, createdAt } = req.query;
+    try {
+      let body = await elasticClient.client().search({
+        index: 'members',
+        filterPath: ['hits.hits._source'],
+        body: {
+          // _source: ['*'],
+          query: {
+            multi_match: {
+              query: search,
+              fields: ['*_name']
+            },
           },
           sort: [
             { "createdAt": { "order": createdAt } }],
